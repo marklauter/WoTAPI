@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
@@ -35,17 +36,37 @@ namespace WoT.API.Sandbox
         private static readonly string BattleTypeParamName = "battle_type";
         private static readonly string TierParamName = "max_vehicle_level";
         private static readonly string BattleType = "SORTIE";
-        private static readonly String GACookie = "_ga=GA1.2.177974393.1624070683";
-
-
+        private static readonly string GACookie = "_ga=GA1.2.177974393.1624070683";
         private static readonly HttpClient Client = new();
 
         private static async Task Main(string[] args)
         {
-            var accessToken = args[0];
+            if (args.Length == 1)
+            {
+                var accessToken = args[0];
+                await GetClanJournalAsync(ClanId, accessToken);
+            }
+
+            await CreateSessionsAsync();
+
             //await GetClanRatingsAsync(ClanId);
             //Console.WriteLine();
-            await GetClanJournalAsync(ClanId, accessToken);
+        }
+
+        private static async Task CreateSessionsAsync()
+        {
+            var json = await File.ReadAllTextAsync("GattClanJournal.json");
+            var battles = JsonConvert.DeserializeObject<List<BattleEvent>>(json);
+            var battleSessions = battles
+                .Select(b => b.StartedUtc.Date)
+                .Distinct()
+                .Select(d => new BattleSession(
+                    d, 
+                    battles.Where(b=> b.StartedUtc.Date == d).ToArray()))
+                .ToArray();
+
+            json = JsonConvert.SerializeObject(battleSessions);
+            await File.WriteAllTextAsync("GattBattleSessions.json", json);
         }
 
         private static async Task AuthAsync()
