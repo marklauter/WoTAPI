@@ -46,8 +46,10 @@ namespace WoT.API.Sandbox
                 var accessToken = args[0];
                 await GetClanJournalAsync(ClanId, accessToken);
             }
-
-            await CreateSessionsAsync();
+            else
+            {
+                await CreateSessionsAsync();
+            }
 
             //await GetClanRatingsAsync(ClanId);
             //Console.WriteLine();
@@ -61,8 +63,8 @@ namespace WoT.API.Sandbox
                 .Select(b => b.StartedUtc.Date)
                 .Distinct()
                 .Select(d => new BattleSession(
-                    d, 
-                    battles.Where(b=> b.StartedUtc.Date == d).ToArray()))
+                    d,
+                    battles.Where(b => b.StartedUtc.Date == d).ToArray()))
                 .ToArray();
 
             json = JsonConvert.SerializeObject(battleSessions);
@@ -147,7 +149,6 @@ namespace WoT.API.Sandbox
                 var content = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(content);
             }
-
         }
     }
 }

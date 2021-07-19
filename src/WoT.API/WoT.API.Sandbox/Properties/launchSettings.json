@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "WoT.API.Sandbox": {
+      "commandName": "Project"
+    }
+  }
+}
