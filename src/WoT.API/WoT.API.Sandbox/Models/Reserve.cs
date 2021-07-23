@@ -1,4 +1,7 @@
-﻿namespace WoT.API.Sandbox.Models
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace WoT.API.Sandbox.Models
 {
     public class Reserve
     {
