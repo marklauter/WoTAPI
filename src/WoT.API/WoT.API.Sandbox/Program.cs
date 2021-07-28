@@ -46,10 +46,10 @@ namespace WoT.API.Sandbox
             "com",
             "asia",
         };
-        private static readonly string ApplicationId = Environment
+        private static readonly string AccessToken = Environment
             .GetEnvironmentVariable(
-                "wot_api_applicationId",
-                EnvironmentVariableTarget.Machine);
+                "WoTAPI_accessToken",
+                EnvironmentVariableTarget.User);
         //private static readonly int ClanId = 1000057667; // gatt
         private static readonly Regions Region = Sandbox.Regions.na;
         private static readonly string PublicApiHost = $"api.worldoftanks.{Regions[(int)Region]}/wot";
@@ -59,7 +59,7 @@ namespace WoT.API.Sandbox
         private static readonly string ApplicationIdParamName = "application_id";
         private static readonly string ClanIdParamName = "clan_id";
         private static readonly string LimitParamName = "limit";
-        //private static readonly string UntilParamName = "until";
+        private static readonly string UntilParamName = "until";
         private static readonly string BattleTypeParamName = "battle_type";
         //private static readonly string TierParamName = "max_vehicle_level";
         //private static readonly string BattleType = "FORT_BATTLE";
@@ -68,15 +68,15 @@ namespace WoT.API.Sandbox
 
         private static async Task Main(string[] args)
         {
-            if (args.Length == 3)
+            if (args.Length >= 1)
             {
-                var accessToken = args[0];
-                var limit = args[1];
-                var runauth = args[2];
+                //var accessToken = args[0];
+                var limit = args[0];
+                //var runauth = args[2];
                 //var until = args[2];
-                //await GetClanJournalAsync(accessToken, limit, until);
+                await GetClanJournalAsync(limit);
                 //await DeserializeFromStreamCallAsync(accessToken, limit);
-                await AuthenticationRoutineAsync(runauth);
+                //await AuthenticationRoutineAsync(runauth);
             }
 
             //await CreateSessionsAsync();
@@ -132,14 +132,14 @@ namespace WoT.API.Sandbox
             }
         }*/
 
-        private static async Task GetClanJournalAsync(string accessToken, string limit/*, string until*/)
+        private static async Task GetClanJournalAsync(/*string accessToken, string until,*/ string limit)
         {
             // https://wgsh-wotus.wargaming.net/game_api/clan_journal/battles?limit=5000&until=1626658065  
 
             /*THE BELOW HANDLES SORTIES, WHICH ARE TIERS 6 AND 8*/
 
             //var limit = 5000;
-            var ssidCooke = $"wgsh_ssid={accessToken}";
+            var ssidCooke = $"wgsh_ssid={AccessToken}";
             var queryS = HttpUtility.ParseQueryString(String.Empty);
             queryS[LimitParamName] = limit.ToString();
             //queryS[BattleTypeParamName] = "SORTIE";
@@ -184,8 +184,9 @@ namespace WoT.API.Sandbox
 
             /*THE BELOW HANDLES FORT_BATTLES, WHICH ARE ADVANCES AT TIER 10*/
 
-            /*var queryF = HttpUtility.ParseQueryString(String.Empty);
+            var queryF = HttpUtility.ParseQueryString(String.Empty);
             queryF[LimitParamName] = limit.ToString();
+            //queryF[UntilParamName] = until.ToString();
             queryF[BattleTypeParamName] = "FORT_BATTLE";
 
             var uriBuilderF = new UriBuilder("https", InGameApiHost)
@@ -206,22 +207,22 @@ namespace WoT.API.Sandbox
             var responseF = await Client.SendAsync(requestF);
 
             if (responseF.IsSuccessStatusCode)
-            {*/
-            //THE BELOW IS THE WORKING CODE AS OF 7_21_2021 1343 MT
-            /*
-            var content = await responseF.Content.ReadAsStringAsync();
-            Console.WriteLine($"bytes received: {content.Length}");
-            AdvancesPage advancesPage = (AdvancesPage)JsonConvert.DeserializeObject(content, typeof(AdvancesPage));
-            Console.WriteLine($"battles received: {advancesPage.meta.total_count}");
+            {
+                //THE BELOW IS THE WORKING CODE AS OF 7_21_2021 1343 MT
 
-            var apconv = JsonConvert.SerializeObject(advancesPage.data);
-            var apconvDS = JsonConvert.DeserializeObject(apconv);
-            var apconvDS_S = apconvDS.ToString();
-            var apconvSS = apconvDS_S.Substring(1, apconvDS_S.Length - 2);
-            Data dataPage = JsonConvert.DeserializeObject<Data>(apconvSS);
-            var dpconv = JsonConvert.SerializeObject(dataPage.rounds);
-            await File.WriteAllTextAsync("rounds.json", dpconv);
-            */
+                var content = await responseF.Content.ReadAsStringAsync();
+                Console.WriteLine($"bytes received: {content.Length}");
+                AdvancesPage advancesPage = (AdvancesPage)JsonConvert.DeserializeObject(content, typeof(AdvancesPage));
+                Console.WriteLine($"battles received: {advancesPage.meta.total_count}");
+
+                var apconv = JsonConvert.SerializeObject(advancesPage.data);
+                var apconvDS = JsonConvert.DeserializeObject(apconv);
+                var apconvDS_S = apconvDS.ToString();
+                var apconvSS = apconvDS_S.Substring(1, apconvDS_S.Length - 2);
+                Data dataPage = JsonConvert.DeserializeObject<Data>(apconvSS);
+                var dpconv = JsonConvert.SerializeObject(dataPage.rounds);
+                await File.WriteAllTextAsync("rounds.json", dpconv);
+            }
 
             //THE BELOW IS CODE IN PROGRESS, TRYING TO WRITE A STREAMER TO PROCESS ITERATIVE JSON BLOCKS
             /*
